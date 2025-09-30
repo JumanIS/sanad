@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Class Monitor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav id="navbar" style="display:none;">
+    <span class="brand">Class Monitor</span>
+    <a href="#" onclick="showPage('students')">Students</a>
+    <a href="#" onclick="showPage('stream')">Stream</a>
+</nav>
+
+<main>
+    <!-- Login -->
+    <section id="login" class="active">
+        <h3>Login</h3>
+        <input id="email" type="email" placeholder="email">
+        <input id="password" type="password" placeholder="password">
+        <button id="btn-login">Login</button>
+    </section>
+
+    <!-- Students -->
+    <section id="students">
+        <h3>Students</h3>
+        <button onclick="showAddStudent()">+ Add Student</button>
+
+        <!-- Students list -->
+        <div id="students-list">
+            <table id="students-table">
+                <thead>
+                <tr><th>Name</th><th>Class</th><th>Actions</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Add student form -->
+        <div id="student-form" style="display:none;">
+            <h4>Add Student</h4>
+            <input id="new-name" type="text" placeholder="Full name">
+            <input id="new-class" type="text" placeholder="Class name">
+            <input id="new-photo" type="file" accept="image/*">
+            <button onclick="submitStudent()">Save</button>
+            <button onclick="cancelAdd()">Cancel</button>
+            <button onclick="backToList()">Back to List</button>
+        </div>
+
+        <!-- Student detail view -->
+        <div id="student-view" style="display:none;">
+            <button onclick="backToList()">Back to List</button>
+            <div id="student-detail"></div>
+        </div>
+    </section>
+
+    <!-- Stream -->
+    <section id="stream">
+        <h3>Live Detection</h3>
+        <button id="btn-toggle">Start Stream</button>
+        <img id="stream-img" alt="video stream" />
+    </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
