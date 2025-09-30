@@ -109,27 +109,33 @@ A Raspberry Pi + Webcam system for teachers to register students, capture face d
 
 ```
 school-behavior-ai/
-├── backend/
-│ ├── __init__.py
-│ ├── app.py # Flask main app (routes, detection API)
-│ ├── auth.py # Authentication & JWT handling
-│ ├── behavior.py 
-│ ├── db_models.py # SQLite ORM models (SQLAlchemy)
-│ ├── detection.py # YOLOv5-Face + recognition + behavior logic
-│ ├── helpers.py
-│ └── requirements.txt # Python dependencies
+├── backend/                          # Backend (Flask API + AI integration)
+│   ├── __init__.py                   # Marks this folder as a Python package
+│   ├── app.py                        # Flask main app (routes, APIs, student mgmt, streaming)
+│   ├── auth.py                       # Authentication & JWT handling
+│   ├── behavior.py                   # Behavior classification (attentive, distracted, etc.)
+│   ├── db_models.py                  # SQLite ORM models (SQLAlchemy: Student, Behavior, User)
+│   ├── detection.py                  # YOLOv5-Face + recognition + behavior logic
+│   ├── helpers.py                    # Utility functions (embedding, similarity, preprocessing)
+│   └── requirements.txt              # Python dependencies for backend
 │
-├── frontend/
-│ ├── index.html # Login + dashboard + live detection page
-│ ├── style.css # Frontend styles
-│ └── app.js # API calls, webcam handling, drawing bboxes
+├── frontend/                         # Simple frontend (HTML/CSS/JS)
+│   ├── index.html                    # Login, dashboard, students list, stream page
+│   ├── style.css                     # Frontend styling (navbar, tables, forms, stream view)
+│   └── app.js                        # Frontend logic: login, API calls, students CRUD, streaming
 │
-├── yolov5-face/ # AI model, Cloned repo from deepcam-cn/yolov5-face
+├── yolov5-face/                      # Cloned repo from deepcam-cn/yolov5-face (model code)
 │
-├── images/ # Uploaded student photos
+├── models/                           # Pretrained weights (.pt) for YOLOv5-Face
+│   ├── yolov5m-face.pt               # Medium model, main one used
+│   ├── yolov5n-0.5.pt                # Nano model (lighter, less accurate)
+│   └── yolov5s-face.pt               # Small model alternative
 │
-├── db.sqlite3 # SQLite database (auto-generated)
-└── README.md # Setup and usage guide
-└── PLANE.md # Full project plan
-└── MILESTONES.md # Milestones and timeline
+├── images/                           # Uploaded student photos (UUID filenames)
+│
+├── db.sqlite3                        # SQLite database (auto-generated)
+│
+├── README.md                         # Setup and usage guide
+├── PLANE.md                          # Full project plan (design + goals)
+└── MILESTONES.md                     # Timeline of implementation steps
 ```

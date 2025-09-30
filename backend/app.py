@@ -161,7 +161,7 @@ def get_student(student_id):
             "class_name": s.class_name,
             "photo": os.path.basename(s.photo_path),
             "behaviors": [
-                {"id": b.id, "behavior": b.behavior, "confidence": b.confidence, "timestamp": b.timestamp.isoformat()}
+                {"id": b.id, "behavior": b.behavior, "confidence": b.confidence, "timestamp": b.timestamp.strftime("%Y-%m-%d %H:%M:%S")}
                 for b in s.behaviors
             ]
         })

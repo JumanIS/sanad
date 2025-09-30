@@ -1,7 +1,6 @@
 import os, sys, time, cv2, torch
 import numpy as np
 
-# add yolov5-face to path
 YOLO_FACE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "yolov5-face"))
 if YOLO_FACE_DIR not in sys.path:
     sys.path.insert(0, YOLO_FACE_DIR)
@@ -11,8 +10,12 @@ from utils.general import non_max_suppression, non_max_suppression_face
 from backend.behavior import classify_behavior, classify_eye_state_on_roi, classify_mouth_state, classify_head_pose
 
 class FaceDetector:
-    def __init__(self, weights_rel="weights/yolov5m-face.pt", img_size=640, conf_thres=0.25, iou_thres=0.45):
-        weights = os.path.join(YOLO_FACE_DIR, weights_rel)
+    def __init__(self, weights_rel=None, img_size=640, conf_thres=0.25, iou_thres=0.45):
+        if weights_rel is None:
+            weights = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "..", "models", "yolov5m-face.pt")
+            )
+
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         # older yolov5-face API
         self.model = attempt_load(weights, map_location=self.device)
