@@ -2,25 +2,37 @@
 
 ## 1. Overview
 
-A Raspberry Pi + Webcam system for teachers to register students, capture face data, and monitor classroom behavior in real time. Flask provides the backend, HTML/CSS/JS handles the frontend, YOLOv5-Face detects faces, and SQLite stores information. Teachers see bounding boxes around students with names and behavior states. Everything runs **offline**.
+An **offline Raspberry Pi + Webcam system** for teachers to register students, capture face data, and monitor classroom behavior in real time.
+
+* **Backend**: Flask (Python)
+* **Frontend**: HTML/CSS/JS
+* **Face detection**: YOLOv5-Face (cloned repo)
+* **Database**: SQLite (via SQLAlchemy ORM)
+
+Teachers see bounding boxes around students with names + behavior states. Logs are saved to DB for reports.
+
 
 ## 2. Users & Roles
 
 * **Teacher**
-    * Login / logout
-    * Register students with profile + photo
+
+    * Login/logout
+    * Register students (profile + photo)
     * Start/stop live monitoring
     * View real-time detections
-    * View behavior history and reports
+    * View student behavior history & reports
 
 * **Student**
-    * Stored in database only (id, name, class, face embedding, picture)
+
+    * Stored in DB (id, name, class, embedding, photo path)
     * Identified automatically during detection
 
 * **Parent**
-    * Login / logout
-    * View related student(s) reports only
+
+    * Login/logout
+    * View reports of their children only
     * Cannot access live detection
+
 
 ## 3. Hardware
 
@@ -29,113 +41,147 @@ A Raspberry Pi + Webcam system for teachers to register students, capture face d
 * Local Wi-Fi network
 * Storage: microSD / SSD
 
+
 ## 4. Software
 
-* **Backend**: Flask (Python API)
-* **Frontend**: HTML + CSS + JS (simple UI)
-* **Database**: SQLite
+* **Backend**: Flask + SQLAlchemy + JWT + bcrypt
+
+* **Frontend**: HTML + CSS + JS (simple UI with navbar, student pages, stream)
+
+* **Database**: SQLite (file: `db.sqlite3`)
+
 * **Models**:
-    * **YOLOv5-Face** (offline cloned repo for face detection: `yolov5-face`)
-    * Face recognition (InsightFace/Facenet embeddings)
-    * Head pose estimation (attention check)
-    * Eye state detection (sleep detection)
+
+    * YOLOv5-Face (face detection, cloned repo: `yolov5-face/`)
+    * Face recognition embeddings (stored in DB)
+    * Head pose estimation (yaw detection)
+    * Eye state detection (EAR → sleeping detection)
+    * Mouth state detection (MAR → talking detection)
 
 * **Deployment**:
-    * Nginx configured as a reverse proxy to keep Flask running continuously.
-    * Flask served using Gunicorn/uWSGI behind Nginx.
-    * Raspberry Pi configured with static IP and router setup for network access.
+
+    * Flask served with Gunicorn/uWSGI behind Nginx
+    * Nginx reverse proxy for continuous service
+    * Raspberry Pi configured with static IP + router access
+
 
 ## 5. Database Design (SQLite)
 
 **Teachers**
-- id, name, email, password_hash
+
+* id, name, email, password_hash
 
 **Students**
-- id, full_name, class, photo, embedding
 
-**Detections**
-- id, student_id, teacher_id, timestamp, behavior, confidence
+* id, full_name, class_name, photo_path, embedding
+
+**Behaviors**
+
+* id, student_id (FK → Students.id)
+* behavior (attentive, distracted, sleeping, talking, absent)
+* confidence
+* timestamp
+
 
 ## 6. Features & Flow
 
 ### Registration
-* Teacher logs in → adds students → uploads face image → embedding stored.
+
+* Teacher logs in
+* Adds student with name + class + photo
+* Photo saved in `/images/` with UUID filename
+* Face embedding extracted + stored in DB
 
 ### Live Detection
-* Teacher starts session.
-* Webcam feed → YOLOv5-Face detects faces offline.
-* Face embedding compared to DB → student identified.
-* Behavior classified (attentive, distracted, sleeping, absent).
-* Bounding box + label shown in frontend.
-* Detection saved in DB.
+
+* Teacher starts stream
+* Webcam feed processed by YOLOv5-Face
+* Embedding matched against DB → student identified
+* Behavior classified:
+
+    * Attentive
+    * Distracted
+    * Sleeping
+    * Talking
+    * Absent
+* Bounding box + labels drawn on video
+* Behavior logged to DB (with **SAVE_INTERVAL** to avoid spam)
 
 ### Reports
-* Teacher views history per student/class.
-* Export option (CSV/PDF).
-* Parents can log in and view reports related only to their registered children.
-* Teachers and parents can filter reports by:
-    * Student
-    * Timestamp (date/time range)
-    * Behavior type (attentive, distracted, sleeping, absent)
-* Reports can be exported in multiple formats:
-    * Excel (XLSX)
-    * PDF
+
+* Teacher views per-student behavior history in table
+* Behaviors table styled in frontend
+* Export to CSV or PDF
+* Parents can view their children’s reports only
+* Filters:
+
+    * By student
+    * By date/time range
+    * By behavior type
+
 
 ## 7. Testing
 
-* Unit testing for Flask endpoints.
-* Black-box testing of login, registration, detection.
-* Performance: FPS on Raspberry Pi.
-* Accuracy: % correct detections and behaviors.
+* Unit tests for Flask endpoints (login, register, students CRUD, stream)
+* Black-box testing of login/stream flow
+* Performance: FPS on Raspberry Pi (goal: 5+ FPS with `yolov5s-face.pt`)
+* Accuracy: % correct student recognition + behavior classification
+
 
 ## 8. Deliverables
 
-* Working Raspberry Pi system with Flask server.
-* Simple web UI for teachers.
-* SQLite DB with students and logs.
-* Offline YOLOv5-Face detection integrated in `detection.py`.
-* Final project report (with results, screenshots, diagrams).
+* Running Raspberry Pi system with Flask backend
+* Web frontend with:
+
+    * Login
+    * Students list + add/view/delete
+    * Behavior history tables
+    * Stream with toggle Start/Stop
+* SQLite DB with students + behaviors
+* Documentation (setup, usage, screenshots, results)
+
 
 ## 9. Future Improvements
 
-* Optimize YOLOv5-Face with TensorRT / YOLOv8 Nano.
-* Add emotion & voice analysis.
-* Cloud-based dashboard for multiple classes.
-* Federated learning for privacy-preserving improvements.
-* Multi-role management for administrators, teachers, and parents.
-* Secure remote access using HTTPS with Nginx and Certbot SSL certificates.
+* Optimize YOLOv5-Face with TensorRT / YOLOv8 Nano
+* Add emotion + voice analysis
+* Cloud dashboard for multi-class reporting
+* Federated learning for privacy-preserving model updates
+* Multi-role system: admins, teachers, parents
+* HTTPS with Nginx + Certbot SSL
 
-# Files Structure
+
+# File Structure
 
 ```
 school-behavior-ai/
-├── backend/                          # Backend (Flask API + AI integration)
-│   ├── __init__.py                   # Marks this folder as a Python package
-│   ├── app.py                        # Flask main app (routes, APIs, student mgmt, streaming)
-│   ├── auth.py                       # Authentication & JWT handling
-│   ├── behavior.py                   # Behavior classification (attentive, distracted, etc.)
-│   ├── db_models.py                  # SQLite ORM models (SQLAlchemy: Student, Behavior, User)
-│   ├── detection.py                  # YOLOv5-Face + recognition + behavior logic
-│   ├── helpers.py                    # Utility functions (embedding, similarity, preprocessing)
-│   └── requirements.txt              # Python dependencies for backend
+├── backend/                          # Flask backend
+│   ├── __init__.py                   # Python package marker
+│   ├── app.py                        # Main app: routes, streaming
+│   ├── auth.py                       # Auth + JWT
+│   ├── behavior.py                   # Behavior classification logic
+│   ├── db_models.py                  # ORM models: Teacher, Student, Behavior
+│   ├── detection.py                  # YOLOv5-Face integration
+│   ├── helpers.py                    # Embeddings, preprocessing, similarity
+│   └── requirements.txt              # Dependencies
 │
-├── frontend/                         # Simple frontend (HTML/CSS/JS)
-│   ├── index.html                    # Login, dashboard, students list, stream page
-│   ├── style.css                     # Frontend styling (navbar, tables, forms, stream view)
-│   └── app.js                        # Frontend logic: login, API calls, students CRUD, streaming
+├── frontend/                         # Web UI
+│   ├── index.html                    # Login + Students + Stream
+│   ├── style.css                     # Navbar, tables, forms, stream
+│   └── app.js                        # API calls, CRUD, stream handling
 │
-├── yolov5-face/                      # Cloned repo from deepcam-cn/yolov5-face (model code)
+├── yolov5-face/                      # Cloned YOLOv5-Face repo (code only)
 │
-├── models/                           # Pretrained weights (.pt) for YOLOv5-Face
-│   ├── yolov5m-face.pt               # Medium model, main one used
-│   ├── yolov5n-0.5.pt                # Nano model (lighter, less accurate)
-│   └── yolov5s-face.pt               # Small model alternative
+├── models/                           # Pretrained YOLOv5-Face weights
+│   ├── yolov5m-face.pt               # Medium model (default)
+│   ├── yolov5n-0.5.pt                # Nano model (fast)
+│   └── yolov5s-face.pt               # Small model
 │
-├── images/                           # Uploaded student photos (UUID filenames)
+├── images/                           # Student photos (UUID filenames)
 │
 ├── db.sqlite3                        # SQLite database (auto-generated)
 │
-├── README.md                         # Setup and usage guide
-├── PLANE.md                          # Full project plan (design + goals)
+├── README.md                         # Setup + usage guide
+├── PLANE.md                          # Project plan
 └── MILESTONES.md                     # Timeline of implementation steps
 ```
