@@ -7,11 +7,9 @@ def preprocess_face(img, bbox, size=112):
     face = img[y1:y2, x1:x2]
     if face.size == 0:
         return None
-    face = cv2.resize(face, (size, size))
-    return face
+    return cv2.resize(face, (size, size))
 
 def simple_embedding(face):
-    # Placeholder embedding: normalize and flatten.
     vec = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY).astype(np.float32) / 255.0
     return vec.flatten()
 

@@ -1,0 +1,62 @@
+<div class="page" data-name="users">
+    <div class="navbar">
+        <div class="navbar-inner">
+            <div class="title">Users</div>
+        </div>
+    </div>
+
+    <div class="toolbar tabbar toolbar-bottom">
+        <div class="toolbar-inner">
+            <a href="/users/" class="tab-link tab-link-active">Users</a>
+            <a href="/students/" class="tab-link">Students</a>
+            <a href="/stream/" class="tab-link">Stream</a>
+            <a href="/reports/" class="tab-link">Reports</a>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <div class="block">
+            <p class="small-muted">Create teacher or parent accounts.</p>
+            <div class="list no-hairlines">
+                <ul>
+                    <li class="item-content item-input">
+                        <div class="item-inner">
+                            <div class="item-title item-label">Name</div>
+                            <div class="item-input-wrap">
+                                <input id="user-name" type="text" placeholder="Full name">
+                            </div>
+                        </div>
+                    </li>
+                    <li class="item-content item-input">
+                        <div class="item-inner">
+                            <div class="item-title item-label">Email</div>
+                            <div class="item-input-wrap">
+                                <input id="user-email" type="email" placeholder="email@example.com">
+                            </div>
+                        </div>
+                    </li>
+                    <li class="item-content item-input">
+                        <div class="item-inner">
+                            <div class="item-title item-label">Password</div>
+                            <div class="item-input-wrap">
+                                <input id="user-password" type="password" placeholder="password">
+                            </div>
+                        </div>
+                    </li>
+                    <li class="item-content item-input">
+                        <div class="item-inner">
+                            <div class="item-title item-label">Role</div>
+                            <div class="item-input-wrap">
+                                <select id="user-role">
+                                    <option value="true">Teacher</option>
+                                    <option value="false">Parent</option>
+                                </select>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <a href="#" class="button button-fill" id="btn-create-user">Create User</a>
+        </div>
+    </div>
+</div>

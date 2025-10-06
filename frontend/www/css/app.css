@@ -1,0 +1,22 @@
+:root { --muted:#6b7280; }
+* { box-sizing: border-box; }
+body { -webkit-font-smoothing: antialiased; }
+.small-muted { color: var(--muted); font-size: 12px; }
+.stream-img { width: 100%; max-width: 1024px; border-radius: 8px; display: block; }
+.button-small { height: 28px; line-height: 28px; font-size: 12px; padding: 0 10px; }
+.login-screen-title { font-weight: 600; }
+.flex { display:flex; align-items:center; justify-content:space-between; }
+.hide { display: none !important; }
+img.avatar { width:44px; height:44px; border-radius:50%; object-fit:cover; }
+.toolbar .right .chip { margin-right: 8px; }
+.hide { display: none !important; }
+img.avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.small-muted {
+    color: #6b7280;
+    font-size: 13px;
+}

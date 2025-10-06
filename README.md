@@ -52,8 +52,7 @@ school-behavior-ai/
 From the project root:
 
 ```bash
-# Run Flask backend
-python -m backend.app
+python -u -m uvicorn backend.main:app --reloa
 ```
 
 Open your browser at:

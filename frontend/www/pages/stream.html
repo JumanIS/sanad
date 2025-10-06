@@ -1,0 +1,40 @@
+<div class="page" data-name="stream">
+    <div class="navbar">
+        <div class="navbar-inner">
+            <div class="title">Stream</div>
+        </div>
+    </div>
+
+    <div class="toolbar tabbar toolbar-bottom">
+        <div class="toolbar-inner">
+            <a href="/users/" class="tab-link">Users</a>
+            <a href="/students/" class="tab-link">Students</a>
+            <a href="/stream/" class="tab-link tab-link-active">Stream</a>
+            <a href="/reports/" class="tab-link">Reports</a>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <div class="block">
+            <div class="row">
+                <div class="col">
+                    <a href="#" class="button button-fill" id="btn-start-session">Start Session</a>
+                </div>
+                <div class="col">
+                    <a href="#" class="button button-outline color-red" id="btn-stop-session">Stop Session</a>
+                </div>
+            </div>
+
+            <div class="list simple-list">
+                <ul>
+                    <li>Current Session ID: <span id="cur-session-id">—</span></li>
+                    <li>Status: <span id="cur-session-status">idle</span></li>
+                </ul>
+            </div>
+
+            <div class="block">
+                <img id="stream-img" class="stream-img" alt="Live stream">
+            </div>
+        </div>
+    </div>
+</div>

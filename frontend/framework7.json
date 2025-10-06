@@ -1,0 +1,17 @@
+{
+  "cwd": "E:\\Projects\\Students\\f7",
+  "type": [
+    "web"
+  ],
+  "name": "School Behavior AI",
+  "framework": "core",
+  "template": "blank",
+  "bundler": false,
+  "theming": {
+    "customColor": false,
+    "color": "#007aff",
+    "darkMode": false,
+    "iconFonts": true
+  },
+  "customBuild": false
+}

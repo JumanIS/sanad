@@ -1,0 +1,74 @@
+<div class="page" data-name="students">
+    <div class="navbar">
+        <div class="navbar-inner">
+            <div class="title">Students</div>
+        </div>
+    </div>
+
+    <div class="toolbar tabbar toolbar-bottom">
+        <div class="toolbar-inner">
+            <a href="/users/" class="tab-link">Users</a>
+            <a href="/students/" class="tab-link tab-link-active">Students</a>
+            <a href="/stream/" class="tab-link">Stream</a>
+            <a href="/reports/" class="tab-link">Reports</a>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <!-- Header -->
+        <div class="block-header flex">
+            <div class="block-title">Students</div>
+            <a href="#" class="button button-small button-outline" id="btn-toggle-form">+ Add</a>
+        </div>
+
+        <!-- Add Student Form -->
+        <div class="block hide" id="add-student-form">
+            <div class="list no-hairlines-md">
+                <ul>
+                    <li class="item-content item-input">
+                        <div class="item-inner">
+                            <div class="item-title item-label">Full Name</div>
+                            <div class="item-input-wrap">
+                                <input type="text" id="st-name" placeholder="Student name" />
+                            </div>
+                        </div>
+                    </li>
+                    <li class="item-content item-input">
+                        <div class="item-inner">
+                            <div class="item-title item-label">Class</div>
+                            <div class="item-input-wrap">
+                                <input type="text" id="st-class" placeholder="e.g., 7A" />
+                            </div>
+                        </div>
+                    </li>
+                    <li class="item-content item-input">
+                        <div class="item-inner">
+                            <div class="item-title item-label">Parent Email (optional)</div>
+                            <div class="item-input-wrap">
+                                <input type="email" id="st-parent" placeholder="parent@example.com" />
+                            </div>
+                        </div>
+                    </li>
+                    <li class="item-content item-input">
+                        <div class="item-inner">
+                            <div class="item-title item-label">Photo</div>
+                            <div class="item-input-wrap">
+                                <input type="file" id="st-photo" accept="image/*" />
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="block">
+                <a href="#" class="button button-fill" id="btn-save-student">Save Student</a>
+            </div>
+        </div>
+
+        <!-- Students List -->
+        <div class="block-title">Students List</div>
+        <div class="list media-list">
+            <ul id="students-ul"></ul>
+        </div>
+    </div>
+</div>
