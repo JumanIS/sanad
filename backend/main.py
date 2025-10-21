@@ -21,6 +21,7 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False
 origins = [
     "http://localhost:8080",
     "http://127.0.0.1:8080",
+    "http://192.168.0.166",
     "*"
 ]
 
