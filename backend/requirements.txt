@@ -16,6 +16,10 @@ torch==2.3.1
 torchvision==0.18.1
 torchaudio==2.3.1
 mediapipe==0.10.14
+matplotlib==3.9.2
+pandas==2.2.3
+seaborn==0.13.2
+python-dotenv==1.0.1
 
 # Utils
 pillow==10.4.0
