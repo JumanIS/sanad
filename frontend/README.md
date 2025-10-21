@@ -1,4 +1,4 @@
-# School Behavior AI
+# Sanad
 
 ## Framework7 CLI Options
 
@@ -10,7 +10,7 @@ Framework7 app created with following options:
   "type": [
     "web"
   ],
-  "name": "School Behavior AI",
+  "name": "Sanad",
   "framework": "core",
   "template": "blank",
   "bundler": false,

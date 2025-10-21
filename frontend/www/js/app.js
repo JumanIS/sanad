@@ -5,22 +5,47 @@ import studentsPage from './students.js';
 import streamPage from './stream.js';
 import reportsPage from './reports.js';
 
+import { StudentsListPage } from './students/list.js';
+import { StudentAddPage } from './students/add.js';
+import { StudentEditPage } from './students/edit.js';
+import { StudentViewPage } from './students/view.js';
+
 const app = new Framework7({
-    name: 'School Behavior AI',
+    name: 'SANAD',
     el: '#app',
     routes,
+    on: {
+        pageInit: function (page) {
+            const n = page.name;
+            if (n === 'users') usersPage(page);
+            if (n === 'stream') streamPage(page);
+
+            if (n === 'students') StudentsListPage(page);
+            if (n === 'student-add') StudentAddPage(page);
+            if (n === 'student-edit') StudentEditPage(page);
+            if (n === 'student-view') StudentViewPage(page);
+        },
+    }
 });
 
 window.app = app;
+app.views.main.router.on('routeChanged', (route) => {
+    const current = route.url;
+    const toolbar = document.querySelector('.toolbar.tabbar');
+    if (!toolbar) return;
 
-// Attach page logic
-app.on('page:init', (page) => {
-    const n = page.name;
-    if (n === 'users') usersPage(page);
-    if (n === 'students') studentsPage(page);
-    if (n === 'stream') streamPage(page);
-    if (n === 'reports') reportsPage(page);
+    const links = toolbar.querySelectorAll('.tab-link');
+    links.forEach((a) => {
+        const href = a.getAttribute('href');
+        if (href === current) a.classList.add('tab-link-active');
+        else a.classList.remove('tab-link-active');
+    });
+
+    // move the highlight bar to the active link
+    const instance = toolbar.f7Tabbar;
+    if (instance && instance.setHighlight) instance.setHighlight();
 });
+
 
 // === Force login screen on startup ===
 document.addEventListener('DOMContentLoaded', () => {

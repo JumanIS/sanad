@@ -2,22 +2,66 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>School Behavior AI</title>
+    <!--
+    Customize this policy to fit your own app's needs. For more guidance, please refer to the docs:
+        https://cordova.apache.org/docs/en/latest/
+    Some notes:
+      * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
+      * Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
+        * Enable inline JS: add 'unsafe-inline' to default-src
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: content:">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+
+    <meta name="theme-color" content="#fff">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <title>Sanad</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+    <link rel="icon" href="assets/icons/favicon.png">
+
+
     <link rel="stylesheet" href="framework7/framework7-bundle.min.css">
+    <link rel="stylesheet" href="css/icons.css">
     <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
 <div id="app">
     <!-- Main View -->
-    <div class="view view-main view-init" data-url="/"></div>
+    <div class="view view-main view-init" data-url="/">
+        <div class="toolbar tabbar tabbar-labels toolbar-bottom">
+            <div class="toolbar-inner">
+                <a href="/users/" class="tab-link">
+                    <i class="icon f7-icons">person_2</i>
+                    <span class="tabbar-label">Users</span>
+                </a>
+                <a href="/students/" class="tab-link tab-link-active">
+                    <i class="icon f7-icons">person_crop_square</i>
+                    <span class="tabbar-label">Students</span>
+                </a>
+                <a href="/stream/" class="tab-link">
+                    <i class="icon f7-icons">videocam_fill</i>
+                    <span class="tabbar-label">Stream</span>
+                </a>
+                <a href="/reports/" class="tab-link">
+                    <i class="icon f7-icons">doc_text_fill</i>
+                    <span class="tabbar-label">Reports</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+
 
     <!-- Login Screen -->
     <div class="login-screen" id="login-screen">
         <div class="view">
             <div class="page" data-name="login">
                 <div class="page-content login-screen-content">
-                    <div class="login-screen-title">School Behavior AI</div>
+                    <div class="login-screen-title">SANAD</div>
                     <div class="list">
                         <ul>
                             <li class="item-content item-input">
@@ -49,8 +93,12 @@
     </div>
 </div>
 
+<!-- Framework7 library -->
 <script src="framework7/framework7-bundle.min.js"></script>
+
+<!-- App store -->
+<script src="js/store.js"></script>
+<!-- App scripts -->
 <script type="module" src="js/app.js"></script>
 </body>
-
 </html>
