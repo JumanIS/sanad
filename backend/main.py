@@ -457,3 +457,7 @@ frontend_dir = Path(__file__).parent.parent / "frontend" / "www"
 
 # Serve all files (index.html, js, css, assets, etc.)
 app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=80, reload=True)
