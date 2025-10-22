@@ -10,7 +10,7 @@
       * Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
         * Enable inline JS: add 'unsafe-inline' to default-src
     -->
-    <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: content:">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'self' data: about: 'unsafe-inline' 'unsafe-eval' data: content:">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 
     <meta name="theme-color" content="#fff">
@@ -19,10 +19,10 @@
     <title>Sanad</title>
 
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-    <link rel="icon" href="assets/icons/favicon.png">
-
+    <link rel="apple-touch-icon" href="assets/logo.png">
+    <link rel="icon" href="assets/logo.png">
 
     <link rel="stylesheet" href="framework7/framework7-bundle.min.css">
     <link rel="stylesheet" href="css/icons.css">
@@ -46,24 +46,32 @@
                     <i class="icon f7-icons">videocam_fill</i>
                     <span class="tabbar-label">Stream</span>
                 </a>
-                <a href="/reports/" class="tab-link">
-                    <i class="icon f7-icons">doc_text_fill</i>
-                    <span class="tabbar-label">Reports</span>
+                <a id="logout-btn" class="tab-link">
+                    <i class="icon f7-icons">arrow_right_circle_fill</i>
+                    <span class="tabbar-label">Logout</span>
                 </a>
             </div>
         </div>
     </div>
-
-
 
     <!-- Login Screen -->
     <div class="login-screen" id="login-screen">
         <div class="view">
             <div class="page" data-name="login">
                 <div class="page-content login-screen-content">
-                    <div class="login-screen-title">SANAD</div>
+                    <div class="login-screen-title">
+                        <img src="./assets/logo.png" width="50%" alt="">
+                    </div>
                     <div class="list">
                         <ul>
+                            <li class="item-content item-input">
+                                <div class="item-inner">
+                                    <div class="item-title item-label">Host / IP</div>
+                                    <div class="item-input-wrap">
+                                        <input type="text" id="login-host" placeholder="e.g. 192.168.1.50:8000 or sanad.com">
+                                    </div>
+                                </div>
+                            </li>
                             <li class="item-content item-input">
                                 <div class="item-inner">
                                     <div class="item-title item-label">Email</div>
@@ -80,11 +88,12 @@
                                     </div>
                                 </div>
                             </li>
+
+                            <li><a href="#" class="button button-fill" id="btn-login">Login</a></li>
                         </ul>
                     </div>
                     <div class="list">
                         <ul>
-                            <li><a href="#" class="button button-fill" id="btn-login">Login</a></li>
                         </ul>
                     </div>
                 </div>
@@ -95,9 +104,6 @@
 
 <!-- Framework7 library -->
 <script src="framework7/framework7-bundle.min.js"></script>
-
-<!-- App store -->
-<script src="js/store.js"></script>
 <!-- App scripts -->
 <script type="module" src="js/app.js"></script>
 </body>

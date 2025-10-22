@@ -75,7 +75,10 @@ def draw_boxes(img, faces, labels=None):
 
         base_txt = labels[i] if labels and i < len(labels) else f"conf {f['conf']:.2f}"
         beh_txt = f"behavior: {behavior}"
-        dbg_txt = f"EAR:{ear:.2f} | MAR:{mar:.2f} | Yaw:{yaw:.1f}"
+        def fmt(v, p=2):
+            return f"{v:.{p}f}" if isinstance(v, (float, int)) else "-"
+
+        dbg_txt = f"EAR:{fmt(ear)} | MAR:{fmt(mar)} | Yaw:{fmt(yaw,1)}"
 
         cv2.putText(img, base_txt, (x1, max(0, y1-35)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)

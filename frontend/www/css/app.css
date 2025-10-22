@@ -1,1 +1,27 @@
-/* Your app custom styles here */
+/* Stream Page */
+#stream-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: url('./assets/camera_placeholder.png') center center no-repeat;
+    background-size: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+#live-stream {
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+}
+
+/* Remove MD icon background inside toolbar only */
+.md .toolbar i.icon::before,
+.md .toolbar-icons i.icon::before,
+.md .toolbar .tab-link-active i.icon::before {
+    background: none !important;
+}

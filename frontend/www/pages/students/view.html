@@ -5,21 +5,34 @@
             <a href="#" class="link back"><i class="icon f7-icons">arrow_left</i></a>
             <div class="title">Student Details</div>
             <div class="right">
-                <a href="#" id="edit-student-btn" class="link">
-                    <i class="icon f7-icons">pencil</i>
-                </a>
+                <a href="#" id="edit-student-btn" class="link"><i class="icon f7-icons">pencil</i></a>
+                <a href="#" id="delete-student-btn" class="link color-red"><i class="icon f7-icons">trash</i></a>
             </div>
         </div>
     </div>
 
-    <div class="page-content">
+    <div class="page-content ptr-content">
+        <div class="ptr-preloader">
+            <div class="preloader"></div>
+            <div class="ptr-arrow"></div>
+        </div>
         <div class="block text-align-center">
-            <img id="student-photo" width="120" height="120" style="border-radius:50%; margin-bottom:10px;">
+            <img
+                    id="student-photo"
+                    src="./assets/avatar.png"
+                    width="120"
+                    height="120"
+                    style="border-radius:50%; margin-bottom:10px;"
+            />
             <div class="block-title" id="student-name"></div>
             <div class="block-footer" id="student-class"></div>
+            <div class="block-footer text-color-gray">
+                Parent: <span id="student-parent"></span>
+            </div>
         </div>
 
-        <div class="list simple-list">
+        <div class="block-title">Behaviors</div>
+        <div class="list media-list list-outline list-dividers">
             <ul id="behaviors-list"></ul>
         </div>
     </div>

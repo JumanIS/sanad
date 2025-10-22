@@ -1,42 +1,61 @@
-import { api } from '../api.js';
+import { api, getBaseURL } from '../api.js';
+import { getToken } from '../auth.js';
 
 export function StudentsListPage(page) {
+    const token = getToken();
+    if (!token) return;
+
     const app = page.app;
     const $ = app.$;
     const $page = $(page.el);
-    const base = 'http://127.0.0.1:8000';
+
+    // get current user data from storage
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     async function loadStudents() {
         try {
             const students = await api('/students');
             const list = $page.find('#students-list');
             list.html('');
-            students.forEach(s => {
+
+            const base = getBaseURL();
+
+            students.forEach((s) => {
+                const name = s.full_name || 'Unnamed';
+                const cls = s.class_name || 'No class';
+                const img = s.photo ? `${base}/${s.photo}` : './assets/avatar.png';
+
                 list.append(`
           <li>
             <a href="/student-view/${s.id}/" class="item-link item-content">
               <div class="item-media">
-                <img src="${s.photo ? base + '/storage/' + s.photo : 'https://placehold.co/64x64'}"
-                     width="48" height="48" style="border-radius:50%">
+                <img src="${img}" width="48" height="48" style="border-radius:50%">
               </div>
               <div class="item-inner">
                 <div class="item-title-row">
-                  <div class="item-title">${s.full_name}</div>
-                  <div class="item-after">${s.class_name}</div>
+                  <div class="item-title"><div class="item-header">${cls}</div>${name}</div>
                 </div>
               </div>
             </a>
           </li>
         `);
             });
-        } catch {
-            app.toast.show({ text: 'Failed to load students', closeTimeout: 1500 });
+        } catch (err) {
+            const msg = typeof err === 'string'
+                ? err
+                : err.detail || err.message || 'An unexpected error occurred';
+            app.dialog.alert(msg, 'Error');
         }
     }
 
-    $page.find('#add_student_btn').on('click', () => {
-        app.views.main.router.navigate('/student-add/');
-    });
+    // hide "Add" button if user is not a teacher
+    if (!user.is_teacher) {
+        $page.find('#add_student_btn').hide();
+    } else {
+        $page.find('#add_student_btn').on('click', () => {
+            app.views.main.router.navigate('/student-add/');
+        });
+    }
 
     loadStudents();
 }

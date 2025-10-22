@@ -58,4 +58,4 @@ def login(db: Session, email: str, password: str):
     if not u or not check_pw(password, u.password_hash):
         return {"error": "invalid credentials"}
     token = issue_jwt(u.id, u.email, u.is_teacher)
-    return {"token": token, "is_teacher": u.is_teacher}
+    return {"token": token, "user": u.to_dict()}

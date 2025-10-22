@@ -6,19 +6,17 @@ export function StudentAddPage(page) {
     const $page = $(page.el);
 
     $page.find('#btn-save-student').on('click', async () => {
-        const name = $page.find('#st-name').val();
-        const cls = $page.find('#st-class').val();
-        const photo = $page.find('#st-photo')[0].files[0];
-
         const form = new FormData();
-        form.append('full_name', name);
-        form.append('class_name', cls);
-        if (photo) form.append('photo', photo);
+        form.append('full_name', $page.find('#st-name').val());
+        form.append('class_name', $page.find('#st-class').val());
+        form.append('parent_email', $page.find('#st-parent').val());
+        const f = $page.find('#st-photo')[0].files[0];
+        if (f) form.append('photo', f);
 
         try {
             await api('/students', { method: 'POST', body: form });
             app.toast.show({ text: 'Student added', closeTimeout: 1500 });
-            app.views.main.router.back('/students/');
+            app.views.main.router.navigate('/students/');
         } catch {
             app.toast.show({ text: 'Failed to save', closeTimeout: 1500 });
         }

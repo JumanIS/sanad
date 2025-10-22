@@ -1,9 +1,9 @@
-<div class="page" data-name="student-edit">
+<div class="page" data-name="user-edit">
     <div class="navbar">
         <div class="navbar-bg"></div>
         <div class="navbar-inner sliding">
             <a href="#" class="link back"><i class="icon f7-icons">arrow_left</i></a>
-            <div class="title">Edit Student</div>
+            <div class="title">Edit User</div>
         </div>
     </div>
 
@@ -12,37 +12,39 @@
             <ul>
                 <li class="item-content item-input">
                     <div class="item-inner">
-                        <div class="item-title item-label">Full Name</div>
+                        <div class="item-title item-label">Name</div>
                         <div class="item-input-wrap">
-                            <input type="text" id="st-name" />
+                            <input type="text" id="u-name" required>
                         </div>
                     </div>
                 </li>
 
                 <li class="item-content item-input">
                     <div class="item-inner">
-                        <div class="item-title item-label">Class</div>
+                        <div class="item-title item-label">Email</div>
                         <div class="item-input-wrap">
-                            <input type="text" id="st-class" />
+                            <input type="email" id="u-email" required>
                         </div>
                     </div>
                 </li>
 
                 <li class="item-content item-input">
                     <div class="item-inner">
-                        <div class="item-title item-label">Parent Email</div>
+                        <div class="item-title item-label">Password</div>
                         <div class="item-input-wrap">
-                            <input type="email" id="st-parent" />
+                            <input type="password" id="u-password" placeholder="Leave empty to keep current password">
                         </div>
                     </div>
                 </li>
 
-                <!-- Optional image upload -->
-                <li class="item-content item-input">
+                <li class="item-content">
                     <div class="item-inner">
-                        <div class="item-title item-label">Photo (optional)</div>
-                        <div class="item-input-wrap">
-                            <input type="file" id="st-photo" accept="image/*" />
+                        <div class="item-title">Is Teacher</div>
+                        <div class="item-after">
+                            <label class="toggle toggle-init">
+                                <input type="checkbox" id="u-is-teacher">
+                                <span class="toggle-icon"></span>
+                            </label>
                         </div>
                     </div>
                 </li>
@@ -50,7 +52,7 @@
         </div>
 
         <div class="block">
-            <a href="#" class="button button-fill" id="btn-update-student">Update</a>
+            <a href="#" class="button button-fill" id="btn-update-user">Update</a>
         </div>
     </div>
 </div>

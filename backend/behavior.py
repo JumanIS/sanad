@@ -106,7 +106,16 @@ def classify_head_pose(landmarks, frame_shape):
                               [0,0,1]], dtype="double")
     dist_coeffs = np.zeros((4,1))
 
-    ok, rvec, tvec = cv2.solvePnP(MODEL_POINTS, image_points, camera_matrix, dist_coeffs, flags=cv2.SOLVEPNP_ITERATIVE)
+    # Ensure we have enough points (at least 6)
+    if image_points is None or len(image_points) < 6:
+        return "unknown", None
+
+    ok, rvec, tvec = cv2.solvePnP(
+        MODEL_POINTS, image_points, camera_matrix, dist_coeffs,
+        flags=cv2.SOLVEPNP_ITERATIVE
+    )
+
+#     ok, rvec, tvec = cv2.solvePnP(MODEL_POINTS, image_points, camera_matrix, dist_coeffs, flags=cv2.SOLVEPNP_ITERATIVE)
     if not ok:
         return "forward", 0.0
 
