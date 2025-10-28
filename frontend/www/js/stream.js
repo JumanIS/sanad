@@ -1,5 +1,5 @@
 import { api, getBaseURL } from './api.js';
-import {getToken} from "./auth.js";
+import { getToken } from './auth.js';
 
 export function StreamPage(page) {
     const token = getToken();
@@ -22,7 +22,7 @@ export function StreamPage(page) {
     const $container = $page.find('#stream-container');
 
     let activeSession = null;
-    let stopping = false; // <--- guard flag
+    let stopping = false;
 
     async function checkSession() {
         try {
@@ -30,21 +30,82 @@ export function StreamPage(page) {
             activeSession = sessions.find((s) => s.active) || null;
             await updateUI(activeSession ? activeSession.id : null);
         } catch (err) {
-            const msg =
-                typeof err === 'string'
-                    ? err
-                    : err.detail || err.message || 'An unexpected error occurred';
+            const msg = typeof err === 'string' ? err : err.detail || err.message || 'Error';
             app.dialog.alert(msg, 'Error');
         }
     }
 
     async function stopSession(id) {
-        if (stopping) return; // prevent double stop
+        if (stopping) return;
         stopping = true;
         try {
-            if (id) await api(`/sessions/stop/${id}`, { method: 'POST' });
-        } catch {}
-        stopping = false;
+            await api(`/sessions/stop/${id}`, { method: 'POST' });
+        } catch (_) {
+            // ignore 404/409-like errors from idempotent stop
+        } finally {
+            stopping = false;
+        }
+    }
+
+    function chooseSessionType() {
+        return new Promise((resolve) => {
+            const dlg = app.dialog.create({
+                title: 'Start Session',
+                content:
+                    '<div class="list no-hairlines-md"><ul>' +
+                    '<li><label class="item-radio item-content">' +
+                    '<input type="radio" name="sessionType" value="normal" checked>' +
+                    '<i class="icon icon-radio"></i>' +
+                    '<div class="item-inner"><div class="item-title">Normal class</div></div>' +
+                    '</label></li>' +
+                    '<li><label class="item-radio item-content">' +
+                    '<input type="radio" name="sessionType" value="exam">' +
+                    '<i class="icon icon-radio"></i>' +
+                    '<div class="item-inner"><div class="item-title">Exam</div></div>' +
+                    '</label></li>' +
+                    '</ul></div>',
+                buttons: [
+                    { text: 'Cancel', onClick: () => resolve(null) },
+                    {
+                        text: 'Start',
+                        close: true,
+                        onClick: (inst) => {
+                            const val = $(inst.$el).find('input[name="sessionType"]:checked').val();
+                            resolve(val === 'exam');
+                        },
+                    },
+                ],
+            });
+            dlg.open();
+        });
+    }
+
+    async function startSessionWithChoice() {
+        const pick = await chooseSessionType();
+        if (pick === null) return null; // canceled
+
+        // Send multipart form for FastAPI Form(...)
+        const fd = new FormData();
+        fd.append('is_exam', String(pick));
+
+        const res = await fetch(`${base}/sessions/start`, {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + getToken() },
+            body: fd,
+        });
+
+        if (!res.ok) {
+            let msg = 'Failed to start session';
+            try {
+                const data = await res.json();
+                if (data?.detail) msg = data.detail;
+            } catch {}
+            throw new Error(msg);
+        }
+
+        // Do not trust shape; re-sync from /sessions
+        await checkSession();
+        return activeSession;
     }
 
     async function updateUI(sessionId) {
@@ -52,7 +113,6 @@ export function StreamPage(page) {
         const $text = $btn.find('span');
 
         if (sessionId) {
-            // ===== ACTIVE SESSION =====
             $btn.removeClass('color-blue').addClass('color-red');
             $icon.text('stop_circle_fill');
             $text.text('Stop');
@@ -66,15 +126,12 @@ export function StreamPage(page) {
                 $container.css('background', 'none');
             });
             $live.on('error', async (e) => {
-                console.warn('stream error', e);
+                if (stopping || !activeSession) return;
                 try {
-                    await stopSession(sessionId);
+                    await stopSession(activeSession.id);
                 } catch {}
-
                 activeSession = null;
                 await updateUI(null);
-
-                // read message from the last failed response if available
                 let msg = 'Camera not available';
                 try {
                     const res = await fetch(`${base}/detect/stream?session_id=${sessionId}`);
@@ -83,14 +140,11 @@ export function StreamPage(page) {
                 } catch (err) {
                     if (err?.message) msg = err.message;
                 }
-
                 app.dialog.alert(msg, 'Error');
             });
 
-
             $live.attr('src', src).show();
         } else {
-            // ===== STOPPED =====
             $btn.removeClass('color-red').addClass('color-blue');
             $icon.text('play_circle_fill');
             $text.text('Start');
@@ -100,8 +154,7 @@ export function StreamPage(page) {
             $live.hide();
 
             $container.css({
-                background:
-                    "url('./assets/camera_placeholder.png') center center no-repeat",
+                background: "url('./assets/camera_placeholder.png') center center no-repeat",
                 'background-size': 'auto',
             });
         }
@@ -110,22 +163,18 @@ export function StreamPage(page) {
     $btn.on('click', async () => {
         try {
             if (activeSession) {
-                // Stop session manually
+                // prevent double-stop from <img> error handler
+                $live.off('load error');
                 $live.attr('src', 'data:,').hide();
-                await stopSession(activeSession.id);
+
+                await stopSession(activeSession.id); // idempotent on backend
                 activeSession = null;
                 await updateUI(null);
             } else {
-                // Start new session
-                const res = await api('/sessions/start', { method: 'POST' });
-                activeSession = res;
-                await updateUI(activeSession ? activeSession.id : null);
+                await startSessionWithChoice(); // opens modal and posts is_exam
             }
         } catch (err) {
-            const msg =
-                typeof err === 'string'
-                    ? err
-                    : err.detail || err.message || 'An unexpected error occurred';
+            const msg = typeof err === 'string' ? err : err.detail || err.message || 'Error';
             app.dialog.alert(msg, 'Error');
         }
     });

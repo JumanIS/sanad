@@ -64,6 +64,7 @@ class Student(Base):
                     "behavior": b.behavior,
                     "confidence": b.confidence,
                     "timestamp": b.timestamp.isoformat() if b.timestamp else None,
+                    "is_exam": b.session.is_exam if getattr(b, "session", None) else False,
                 }
                 for b in self.behaviors
             ]
@@ -77,6 +78,7 @@ class Session(Base):
     teacher_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     start_time = Column(DateTime, default=datetime.utcnow)
     end_time = Column(DateTime, nullable=True)
+    is_exam = Column(Boolean, nullable=False, default=False)
     active = Column(Boolean, default=True)
 
     teacher = relationship("User", back_populates="sessions")

@@ -14,6 +14,9 @@ from backend.auth import verify_jwt, ensure_bootstrap_teacher, create_user, logi
 from backend.helpers import preprocess_face, simple_embedding, cosine_similarity
 from backend.detection import FaceDetector, draw_boxes
 from backend.behavior import classify_behavior
+from fastapi.responses import StreamingResponse
+import cv2, numpy as np, time
+from io import BytesIO
 
 DB_URL = "sqlite:///db.sqlite3"
 engine = create_engine(DB_URL, echo=False, future=True)
@@ -27,7 +30,7 @@ origins = [
     "*"
 ]
 
-app = FastAPI(title="School Behavior AI")
+app = FastAPI(title="SANAD")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins, allow_credentials=True,
@@ -299,24 +302,51 @@ def delete_student(student_id: int, db: SASession = Depends(get_db), u = Depends
 # SESSIONS
 # ===============================
 @app.post("/sessions/start")
-def start_session(db: SASession = Depends(get_db), u = Depends(get_current_user)):
+def start_session(
+    is_exam: bool = Form(False),
+    db: SASession = Depends(get_db),
+    u = Depends(get_current_user),
+):
     if not u.get("is_teacher"):
         raise HTTPException(403, "forbidden")
-    sess = DBSession(teacher_id=u["sub"], active=True)
-    db.add(sess); db.commit()
-    return {"id": sess.id, "start_time": sess.start_time.isoformat()}
+    sess = DBSession(teacher_id=int(u["sub"]), active=True, is_exam=is_exam)  # use sub
+    db.add(sess); db.commit(); db.refresh(sess)
+    return {"ok": True, "session_id": sess.id, "is_exam": sess.is_exam}
+
 
 @app.post("/sessions/stop/{session_id}")
 def stop_session(session_id: int, db: SASession = Depends(get_db), u = Depends(get_current_user)):
     if not u.get("is_teacher"):
         raise HTTPException(403, "forbidden")
+
     sess = db.query(DBSession).get(session_id)
     if not sess or not sess.active:
         raise HTTPException(404, "not active")
+
+    # close session
     sess.active = False
     sess.end_time = datetime.utcnow()
+
+    # students that already have any behavior logged in this session
+    seen_ids_q = (
+        db.query(Behavior.student_id)
+          .filter(Behavior.session_id == session_id)
+          .distinct()
+    )
+
+    # students never detected during this session
+    missing_ids = [sid for (sid,) in db.query(Student.id).filter(~Student.id.in_(seen_ids_q)).all()]
+
+    # one “absent” row per missing student
+    if missing_ids:
+        db.add_all([
+            Behavior(session_id=session_id, student_id=sid, behavior="absent", confidence=0.0)
+            for sid in missing_ids
+        ])
+
     db.commit()
-    return {"ok": True}
+    return {"ok": True, "absent_added": len(missing_ids)}
+
 
 @app.get("/sessions")
 def my_sessions(db: SASession = Depends(get_db), u = Depends(get_current_user)):
@@ -333,38 +363,40 @@ def my_sessions(db: SASession = Depends(get_db), u = Depends(get_current_user)):
     else:
         sess = db.query(DBSession).filter(DBSession.teacher_id == u["sub"]).all()
     return [{
-        "id": s.id, "active": s.active,
+        "id": s.id,
+        "active": s.active,
+        "is_exam": s.is_exam,
         "start_time": s.start_time.isoformat(),
-        "end_time": s.end_time.isoformat() if s.end_time else None
+        "end_time": s.end_time.isoformat() if s.end_time else None,
     } for s in sess]
 
 @app.get("/detect/stream")
-def detect_stream(
-    session_id: int = Query(...),
-    db: SASession = Depends(get_db)
-):
-#     if not u.get("is_teacher"):
-#         raise HTTPException(status_code=403, detail="forbidden")
-
-    sess = db.get(DBSession, session_id)
+def detect_stream(session_id: int, db: SASession = Depends(get_db)):
+    # verify active session
+    sess = db.query(DBSession).get(session_id)
     if not sess or not sess.active:
-        raise HTTPException(status_code=404, detail="session not active")
+        raise HTTPException(404, "session not active")
 
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
-        raise HTTPException(status_code=500, detail="camera not available")
+        raise HTTPException(500, "camera not available")
 
-    studs = db.query(Student).all()  # load once
+    last_saved = {}
+    SAVE_INTERVAL = 5.0  # seconds
+    MIN_SIM = 0.6        # require high confidence
+    MIN_MARGIN = 0.05     # best - second-best difference
 
-    def gen():
-        try:
-            while True:
-                ok, frame = cap.read()
-                if not ok:
-                    break
+    def gen_frames():
+        while True:
+            ok, frame = cap.read()
+            if not ok:
+                break
 
-                faces = detector.predict(frame)
-                labels = []
+            faces = detector.predict(frame)  # [{'bbox': (x,y,w,h), 'landmarks': ...}]
+            labels = []
+            db2 = SessionLocal()
+            try:
+                students = db2.query(Student).all()
 
                 for f in faces:
                     crop = preprocess_face(frame, f["bbox"])
@@ -374,71 +406,72 @@ def detect_stream(
 
                     emb = simple_embedding(crop)
 
-                    best, best_name, best_sim = None, "unknown", 0.0
-                    for s in studs:
+                    best_student, best_name = None, "unknown"
+                    best_sim, second_sim = -1.0, -1.0
+
+                    for s in students:
                         if not s.embedding:
                             continue
-                        ref = np.array(
-                            [float(x) for x in s.embedding.split(",")],
-                            dtype=np.float32
-                        )
+                        txt = s.embedding.strip()
+                        if txt.startswith("[") and txt.endswith("]"):
+                            txt = txt[1:-1]
+                        try:
+                            ref = np.array(
+                                [float(x) for x in txt.replace("\n", " ").split(",")],
+                                dtype=np.float32
+                            )
+                        except Exception:
+                            continue
+
                         sim = cosine_similarity(emb, ref)
                         if sim > best_sim:
-                            best_sim, best, best_name = sim, s, s.full_name
+                            second_sim = best_sim
+                            best_sim = sim
+                            best_student = s
+                            best_name = s.full_name
+                        elif sim > second_sim:
+                            second_sim = sim
 
-                    if best and best_sim > 0.5:
+                    # apply similarity and margin test
+                    if best_student and best_sim >= MIN_SIM and (best_sim - second_sim) >= MIN_MARGIN:
                         labels.append(f"{best_name} ({best_sim:.2f})")
-                        behavior = classify_behavior(
-                            frame, f["bbox"], f.get("landmarks", []),
-                            student_key=str(best.id)
-                        )
 
-                        key_once = (session_id, best.id, behavior)
-                        if behavior in ("attentive", "absent"):
-                            if not _saved_once.get(key_once):
-                                db.add(Behavior(
-                                    session_id=session_id,
-                                    student_id=best.id,
-                                    behavior=behavior,
-                                    confidence=float(best_sim)
-                                ))
-                                db.commit()
-                                _saved_once[key_once] = True
-                        else:
-                            key_ts = (session_id, best.id, behavior)
+                        landmarks = f.get("landmarks", [])
+                        behavior = classify_behavior(frame, f["bbox"], landmarks)
+
+                        if behavior != "attentive":
+                            key = (best_student.id, behavior)
                             now = time.time()
-                            last = _last_saved.get(key_ts, 0.0)
-                            if now - last > SAVE_INTERVAL:
-                                db.add(Behavior(
+                            if key not in last_saved or (now - last_saved[key]) > SAVE_INTERVAL:
+                                rec = Behavior(
                                     session_id=session_id,
-                                    student_id=best.id,
+                                    student_id=best_student.id,
                                     behavior=behavior,
-                                    confidence=float(best_sim)
-                                ))
-                                db.commit()
-                                _last_saved[key_ts] = now
+                                    confidence=float(best_sim),
+                                    timestamp=datetime.utcnow()
+                                )
+                                try:
+                                    db2.add(rec)
+                                    db2.commit()
+                                except Exception as e:
+                                    db2.rollback()
+                                    print("DB error:", e)
+                                last_saved[key] = now
                     else:
                         labels.append("unknown")
+            finally:
+                db2.close()
 
-                annotated = draw_boxes(frame.copy(), faces, labels)
-                ok2, buf = cv2.imencode(".jpg", annotated)
-                if not ok2:
-                    continue
+            annotated = draw_boxes(frame.copy(), faces, labels)
+            ret, buf = cv2.imencode(".jpg", annotated)
+            if not ret:
+                continue
+            jpg = buf.tobytes()
+            yield (b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + jpg + b"\r\n")
 
-                yield (
-                    b"--frame\r\nContent-Type: image/jpeg\r\n\r\n"
-                    + buf.tobytes()
-                    + b"\r\n"
-                )
-        except GeneratorExit:
-            # client disconnected
-            pass
-        finally:
-            cap.release()
+        cap.release()
 
-    return StreamingResponse(
-        gen(), media_type="multipart/x-mixed-replace; boundary=frame"
-    )
+    return StreamingResponse(gen_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
 
 
 @app.get("/images/{filename}")

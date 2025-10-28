@@ -29,8 +29,8 @@ export function StudentViewPage(page) {
               <div class="item-content">
                   <div class="item-inner">
                     <div class="item-title-row">
-                      <div class="item-title">${b.behavior}</div>
-                      <div class="item-after">%${b.confidence ? b.confidence.toFixed(2) * 100 : '0'}</div>
+                        <div class="item-title">${b.behavior} (${b.is_exam ? 'exam' : 'class'})</div>
+                        <div class="item-after">%${b.confidence ? Math.round(b.confidence * 100) : '0'}</div>
                     </div>
                     <div class="item-subtitle">${new Date(b.timestamp).toLocaleString()}</div>
                   </div>
