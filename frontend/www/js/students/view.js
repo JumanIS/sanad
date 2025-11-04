@@ -24,8 +24,9 @@ export function StudentViewPage(page) {
 
             if (s.behaviors && s.behaviors.length) {
                 s.behaviors.forEach((b) => {
+                    const bgStyle = b.is_exam && b.behavior !== 'attentive' ? 'background-color: #f8d7da;' : '';
                     list.append(`
-            <li>
+            <li style="${bgStyle}">
               <div class="item-content">
                   <div class="item-inner">
                     <div class="item-title-row">
