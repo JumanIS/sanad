@@ -1,4 +1,5 @@
 import os, uuid, time, cv2, numpy as np
+import psutil, threading
 from datetime import datetime
 from fastapi import FastAPI, UploadFile, Form, Depends, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,7 +39,7 @@ app.add_middleware(
 )
 
 detector = FaceDetector()
-
+cpu_samples = []
 # once per session tracking: attentive/absent
 _saved_once: Dict[Tuple[int,int,str], bool] = {}
 SAVE_INTERVAL = 30
@@ -52,6 +53,15 @@ def get_db():
     finally:
         db.close()
 
+def cpu_monitor():
+    while True:
+        cpu_samples.append(psutil.cpu_percent(interval=1))
+        if len(cpu_samples) >= 30:
+            avg = sum(cpu_samples) / len(cpu_samples)
+            print("CPU AVG (%) on current device:", avg)
+            cpu_samples.clear()
+
+threading.Thread(target=cpu_monitor, daemon=True).start()
 # ---- Auth (inner style) ------------------------------------------------------
 
 def require_auth(request: Request, token: str = Query(None, alias="auth")):
@@ -383,7 +393,7 @@ def detect_stream(session_id: int, db: SASession = Depends(get_db)):
 
     last_saved = {}
     SAVE_INTERVAL = 5.0  # seconds
-    MIN_SIM = 0.6        # require high confidence
+    MIN_SIM = 0.8        # require high confidence
     MIN_MARGIN = 0.05     # best - second-best difference
 
     def gen_frames():
@@ -391,6 +401,8 @@ def detect_stream(session_id: int, db: SASession = Depends(get_db)):
             ok, frame = cap.read()
             if not ok:
                 break
+
+            start_t = time.time()
 
             faces = detector.predict(frame)  # [{'bbox': (x,y,w,h), 'landmarks': ...}]
             labels = []
@@ -450,9 +462,13 @@ def detect_stream(session_id: int, db: SASession = Depends(get_db)):
                                     confidence=float(best_sim),
                                     timestamp=datetime.utcnow()
                                 )
+                                print("Behavior detection accuracy (%):", float(best_sim))
                                 try:
+                                    t1 = time.time()
                                     db2.add(rec)
                                     db2.commit()
+                                    t2 = time.time()
+                                    print("DB WRITE LATENCY:", (t2 - t1) * 1000, "ms")
                                 except Exception as e:
                                     db2.rollback()
                                     print("DB error:", e)
@@ -461,6 +477,16 @@ def detect_stream(session_id: int, db: SASession = Depends(get_db)):
                         labels.append("unknown")
             finally:
                 db2.close()
+
+            end_t = time.time()
+            if not hasattr(gen_frames, "lat_samples"):
+                gen_frames.lat_samples = []
+            gen_frames.lat_samples.append(end_t - start_t)
+
+            if len(gen_frames.lat_samples) >= 300:
+                avg = sum(gen_frames.lat_samples) / len(gen_frames.lat_samples)
+                print("AVG LATENCY (sec/frame):", avg)
+                gen_frames.lat_samples.clear()
 
             annotated = draw_boxes(frame.copy(), faces, labels)
             ret, buf = cv2.imencode(".jpg", annotated)
